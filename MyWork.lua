@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 -- 🔐 KEY GUI
 local ScreenGui = Instance.new("ScreenGui")
@@ -39,16 +40,23 @@ Button.Text = "TP forward"
 
 -- 🔑 Key Check
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    if SearchBox.Text == KEY then
-        ScreenGui.Enabled = false
-        ScreenGuiBT.Enabled = true
-    end
+	if SearchBox.Text == KEY then
+		ScreenGui.Enabled = false
+		ScreenGuiBT.Enabled = true
+	end
 end)
 
--- 🚀 Teleport nach vorne
+-- 🚀 Teleport dahin wo du hinschaust (Kamera)
 Button.MouseButton1Click:Connect(function()
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame += Vector3.new(0,0,-50)
-    end
+	local char = LocalPlayer.Character
+	if not char then return end
+
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local distance = 50
+	local lookDir = Camera.CFrame.LookVector
+	local newPos = hrp.Position + lookDir * distance
+
+	hrp.CFrame = CFrame.new(newPos, newPos + lookDir)
 end)
