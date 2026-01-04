@@ -1,15 +1,15 @@
--- LOCAL SCRIPT: Pflanzen/Samen ins Inventar
+-- LOCAL SCRIPT: Seltene Pflanzen GUI wie Admin Commands
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
 
 -- Character
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local hrp = Character:WaitForChild("HumanoidRootPart")
 
--- RemoteEvent zum Hinzufügen von Items ins Backpack
+-- RemoteEvent zum Hinzufügen ins Backpack
 local pickupEvent = ReplicatedStorage:FindFirstChild("PickupItem")
 if not pickupEvent then
     pickupEvent = Instance.new("RemoteEvent")
@@ -19,7 +19,7 @@ end
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "PlantPickupGui"
+gui.Name = "RarePlantsGui"
 gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local frame = Instance.new("ScrollingFrame")
@@ -38,7 +38,7 @@ layout.Padding = UDim.new(0,5)
 -- Titel
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,30)
-title.Text = "Seeds & Plants"
+title.Text = "Rare Plants"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextScaled = true
@@ -60,12 +60,30 @@ btnOpen.Parent = frame
 btnClose.MouseButton1Click:Connect(function()
     frame.Size = UDim2.new(0,300,0,40)
 end)
-
 btnOpen.MouseButton1Click:Connect(function()
     frame.Size = UDim2.new(0,300,0,400)
 end)
 
--- Funktion um Button für ein Item zu erstellen
+-- Liste der seltenen Pflanzen (wie im Admin Command System)
+local rarePlants = {
+    "CandyBlossomSeed",
+    "BoneBlossomSeed",
+    "SunFlowerSeed",
+    "BurnFlowerSeed",
+    "GreenAppleSeed"
+}
+
+-- Prüfen, ob Objekt selten ist
+local function isRarePlant(obj)
+    for _, name in ipairs(rarePlants) do
+        if obj.Name == name then
+            return true
+        end
+    end
+    return false
+end
+
+-- Button für Pflanze erstellen
 local function addPlantButton(obj)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1,-10,0,30)
@@ -76,7 +94,6 @@ local function addPlantButton(obj)
     btn.Parent = frame
 
     btn.MouseButton1Click:Connect(function()
-        -- Prüfen ob Tool, dann ins Backpack
         if obj:IsA("Tool") then
             pickupEvent:FireServer(obj)
             btn:Destroy()
@@ -86,22 +103,18 @@ local function addPlantButton(obj)
     end)
 end
 
--- Prüfen ob Objekt Pflanzen/Seed ist
-local function isPlant(obj)
-    local name = obj.Name:lower()
-    return name:find("plant") or name:find("seed") or name:find("flower") or name:find("sapling")
-end
-
 -- Liste aktualisieren
 local function updateList()
+    -- alte Buttons löschen
     for _, child in ipairs(frame:GetChildren()) do
         if child:IsA("TextButton") and child ~= btnClose and child ~= btnOpen then
             child:Destroy()
         end
     end
 
+    -- Workspace durchsuchen
     for _, obj in ipairs(Workspace:GetDescendants()) do
-        if isPlant(obj) then
+        if isRarePlant(obj) then
             addPlantButton(obj)
         end
     end
@@ -109,6 +122,8 @@ local function updateList()
     frame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
 end
 
+-- initial update
 updateList()
+-- Auto-update bei neuen oder entfernten Pflanzen
 Workspace.DescendantAdded:Connect(updateList)
 Workspace.DescendantRemoving:Connect(updateList)
