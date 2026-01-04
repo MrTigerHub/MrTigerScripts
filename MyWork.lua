@@ -31,36 +31,32 @@ ScreenGuiBT.Enabled = false
 
 local FrameBT = Instance.new("Frame")
 FrameBT.Parent = ScreenGuiBT
-FrameBT.Size = UDim2.new(0,200,0,100)
+FrameBT.Size = UDim2.new(0,200,0,180) -- genug Platz für 3 Buttons
 FrameBT.Position = UDim2.new(0,100,0,450)
 FrameBT.BackgroundColor3 = Color3.fromRGB(0,0,0)
 
+-- Button: Forward
 local Button = Instance.new("TextButton")
 Button.Parent = FrameBT
 Button.Size = UDim2.new(1,-20,0,40)
-Button.Position = UDim2.new(0,10,0,30)
-Button.Text = "TP forward"
+Button.Position = UDim2.new(0,10,0,10)
+Button.Text = "TP Forward"
 
+-- Button: Up
 local ButtonUP = Instance.new("TextButton")
 ButtonUP.Parent = FrameBT
-ButtonUP.Size = UDim2.new(1, -20,0,40)
-ButtonUP.Position = UDim2.new(0,10,0,80)
+ButtonUP.Size = UDim2.new(1,-20,0,40)
+ButtonUP.Position = UDim2.new(0,10,0,60) -- 10px Abstand nach unten
 ButtonUP.Text = "TP Up"
-ButtonUP.MouseButton1Click:Connect(function()
-       hrp.CFrame = hrp.CFrame * CFrame.new(0, 30, 0)
-end       
 
-
+-- Button: Down
 local ButtonDown = Instance.new("TextButton")
 ButtonDown.Parent = FrameBT
-ButtonDown.Size = UDim2.new(1, -20,0,40)
-ButtonDown.Position = UDim2.new(0,10,0,120)
+ButtonDown.Size = UDim2.new(1,-20,0,40)
+ButtonDown.Position = UDim2.new(0,10,0,110) -- 10px Abstand nach oben ButtonUP
 ButtonDown.Text = "TP Down"
-ButtonDown.MouseButton1Click:Connect(function()
-       hrp.CFrame = hrp.CFrame * CFrame.new(0, -30, 0)
-end       
 
--- 🔑 Key prüfen (RICHTIG!)
+-- 🔑 Key prüfen
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if SearchBox.Text == KEY then
 		Frame.Visible = false
@@ -68,9 +64,18 @@ SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 	end
 end)
 
--- 🚀 TP nach vorne
+-- 🚀 TP Forward
 Button.MouseButton1Click:Connect(function()
 	hrp.CFrame = hrp.CFrame * CFrame.new(0,0,-20)
 end)
 
+-- 🚀 TP Up
+ButtonUP.MouseButton1Click:Connect(function()
+	hrp.CFrame = hrp.CFrame * CFrame.new(0,30,0)
+end)
+
+-- 🚀 TP Down
+ButtonDown.MouseButton1Click:Connect(function()
+	hrp.CFrame = hrp.CFrame * CFrame.new(0,-30,0)
+end)
 
