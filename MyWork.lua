@@ -1,10 +1,13 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+
+-- Character sicher holen
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local hrp = Character:WaitForChild("HumanoidRootPart")
 
 -- 🔐 KEY GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = LocalPlayer.PlayerGui
 
 local Frame = Instance.new("Frame")
 Frame.Parent = ScreenGui
@@ -16,14 +19,14 @@ local SearchBox = Instance.new("TextBox")
 SearchBox.Parent = Frame
 SearchBox.Size = UDim2.new(1,-20,0,40)
 SearchBox.Position = UDim2.new(0,10,0,10)
-SearchBox.PlaceholderText = "Key eingeben"
 SearchBox.Text = ""
+SearchBox.PlaceholderText = "Key eingeben"
 
 local KEY = "BASTI"
 
 -- 🚀 BUTTON GUI
 local ScreenGuiBT = Instance.new("ScreenGui")
-ScreenGuiBT.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGuiBT.Parent = LocalPlayer.PlayerGui
 ScreenGuiBT.Enabled = false
 
 local FrameBT = Instance.new("Frame")
@@ -38,25 +41,15 @@ Button.Size = UDim2.new(1,-20,0,40)
 Button.Position = UDim2.new(0,10,0,30)
 Button.Text = "TP forward"
 
--- 🔑 Key Check
+-- 🔑 Key prüfen (RICHTIG!)
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if SearchBox.Text == KEY then
-		ScreenGui.Enabled = false
+		Frame.Visible = false
 		ScreenGuiBT.Enabled = true
 	end
 end)
 
--- 🚀 Teleport dahin wo du hinschaust (Kamera)
+-- 🚀 TP nach vorne
 Button.MouseButton1Click:Connect(function()
-	local char = LocalPlayer.Character
-	if not char then return end
-
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	local distance = 50
-	local lookDir = Camera.CFrame.LookVector
-	local newPos = hrp.Position + lookDir * distance
-
-	hrp.CFrame = CFrame.new(newPos, newPos + lookDir)
+	hrp.CFrame = hrp.CFrame * CFrame.new(0,0,-20)
 end)
