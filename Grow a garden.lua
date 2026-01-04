@@ -1,4 +1,4 @@
--- LOCAL SCRIPT: Seltene Pflanzen GUI wie Admin Commands
+-- LOCAL SCRIPT: Seltene Pflanzen GUI wie Admin Commands (max. 20 Buttons)
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -103,7 +103,7 @@ local function addPlantButton(obj)
     end)
 end
 
--- Liste aktualisieren
+-- Liste aktualisieren (max. 20 Buttons)
 local function updateList()
     -- alte Buttons löschen
     for _, child in ipairs(frame:GetChildren()) do
@@ -112,10 +112,12 @@ local function updateList()
         end
     end
 
-    -- Workspace durchsuchen
+    local count = 0 -- Zähler für Buttons
     for _, obj in ipairs(Workspace:GetDescendants()) do
+        if count >= 20 then break end -- maximal 20 Buttons
         if isRarePlant(obj) then
             addPlantButton(obj)
+            count = count + 1
         end
     end
 
