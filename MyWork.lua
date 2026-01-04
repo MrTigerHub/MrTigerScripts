@@ -41,6 +41,25 @@ Button.Size = UDim2.new(1,-20,0,40)
 Button.Position = UDim2.new(0,10,0,30)
 Button.Text = "TP forward"
 
+local ButtonUP = Instance.new("TextButton")
+ButtonUP.Parent = FrameBT
+ButtonUP.Size = UDim2.new(1, -20,0,40)
+ButtonUP.Position = UDim2.new(0,10,0,80)
+ButtonUP.Text = "TP Up"
+ButtonUP.MouseButton1Click:Connect(function()
+       hrp.CFrame = hrp.CFrame * CFrame.new(0, 30, 0)
+end       
+
+
+local ButtonDown = Instance.new("TextButton")
+ButtonDown.Parent = FrameBT
+ButtonDown.Size = UDim2.new(1, -20,0,40)
+ButtonDown.Position = UDim2.new(0,10,0,120)
+ButtonDown.Text = "TP Down"
+ButtonDown.MouseButton1Click:Connect(function()
+       hrp.CFrame = hrp.CFrame * CFrame.new(0, -30, 0)
+end       
+
 -- 🔑 Key prüfen (RICHTIG!)
 SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if SearchBox.Text == KEY then
@@ -53,3 +72,5 @@ end)
 Button.MouseButton1Click:Connect(function()
 	hrp.CFrame = hrp.CFrame * CFrame.new(0,0,-20)
 end)
+
+
