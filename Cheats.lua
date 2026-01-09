@@ -1,103 +1,62 @@
--- INVENTORY GUI – ALLES AUTOMATISCH
+-- ALLES-IN-EINEM MODELL-CLONER
+-- In ServerScriptService einfügen
 
-local player = game.Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "InventoryGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+-- RemoteEvent
+local event = Instance.new("RemoteEvent")
+event.Name = "CloneModelEvent"
+event.Parent = ReplicatedStorage
 
--- Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 400)
-frame.Position = UDim2.new(0, 20, 0.5, -200)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
-
--- Ecken
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = frame
-
--- Titel
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundTransparency = 1
-title.Text = "🎒 Inventar"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 24
-title.Parent = frame
-
--- ScrollingFrame
-local listFrame = Instance.new("ScrollingFrame")
-listFrame.Position = UDim2.new(0, 0, 0, 40)
-listFrame.Size = UDim2.new(1, 0, 1, -40)
-listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-listFrame.ScrollBarImageTransparency = 0.3
-listFrame.BackgroundTransparency = 1
-listFrame.BorderSizePixel = 0
-listFrame.Parent = frame
-
--- Layout
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 6)
-layout.Parent = listFrame
-
--- Padding
-local padding = Instance.new("UIPadding")
-padding.PaddingTop = UDim.new(0, 6)
-padding.PaddingLeft = UDim.new(0, 6)
-padding.PaddingRight = UDim.new(0, 6)
-padding.Parent = listFrame
-
--- Alte Items löschen
-local function clearItems()
-	for _, child in pairs(listFrame:GetChildren()) do
-		if child:IsA("TextButton") then
-			child:Destroy()
-		end
+-- Server: Modell klonen
+event.OnServerEvent:Connect(function(player, model)
+	if model and model:IsA("Model") and model.PrimaryPart then
+		local clone = model:Clone()
+		clone.Parent = workspace
+		clone:SetPrimaryPartCFrame(model.PrimaryPart.CFrame)
 	end
-end
+end)
 
--- Inventar updaten
-local function updateInventory()
-	clearItems()
+-- GUI erstellen für Spieler
+Players.PlayerAdded:Connect(function(player)
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "ModelClonerGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = player:WaitForChild("PlayerGui")
 
-	for _, tool in pairs(backpack:GetChildren()) do
-		if tool:IsA("Tool") then
-			local button = Instance.new("TextButton")
-			button.Size = UDim2.new(1, -10, 0, 35)
-			button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-			button.TextColor3 = Color3.fromRGB(255, 255, 255)
-			button.Text = tool.Name
-			button.Font = Enum.Font.SourceSans
-			button.TextSize = 18
-			button.AutoButtonColor = true
-			button.Parent = listFrame
+	local frame = Instance.new("ScrollingFrame")
+	frame.Size = UDim2.new(0, 300, 0, 400)
+	frame.Position = UDim2.new(0, 10, 0.5, -200)
+	frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	frame.ScrollBarImageTransparency = 0
+	frame.Parent = gui
 
-			local btnCorner = Instance.new("UICorner")
-			btnCorner.CornerRadius = UDim.new(0, 8)
-			btnCorner.Parent = button
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = frame
 
-			-- OPTIONAL: Tool equippen beim Klicken
-			button.MouseButton1Click:Connect(function()
-				player.Character.Humanoid:EquipTool(tool)
-			end)
+	-- LocalScript
+	local localScript = Instance.new("LocalScript")
+	localScript.Parent = gui
+
+	localScript.Source = [[
+		local ReplicatedStorage = game:GetService("ReplicatedStorage")
+		local event = ReplicatedStorage:WaitForChild("CloneModelEvent")
+		local frame = script.Parent:WaitForChild("ScrollingFrame")
+
+		for _, obj in pairs(workspace:GetChildren()) do
+			if obj:IsA("Model") and obj.PrimaryPart then
+				local btn = Instance.new("TextButton")
+				btn.Size = UDim2.new(1, -10, 0, 40)
+				btn.Text = obj.Name
+				btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+				btn.TextColor3 = Color3.new(1,1,1)
+				btn.Parent = frame
+
+				btn.MouseButton1Click:Connect(function()
+					event:FireServer(obj)
+				end)
+			end
 		end
-	end
-
-	-- Canvas anpassen
-	task.wait()
-	listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-end
-
--- Events
-backpack.ChildAdded:Connect(updateInventory)
-backpack.ChildRemoved:Connect(updateInventory)
-
--- Start
-updateInventory()
+	]]
+end)
