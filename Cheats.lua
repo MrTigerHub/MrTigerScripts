@@ -1,62 +1,55 @@
--- ALLES-IN-EINEM MODELL-CLONER
--- In ServerScriptService einfügen
-
+-- EINZIGES LocalScript: Modell-Kloner
 local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+
+-- RemoteEvent erstellen, falls noch nicht
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local event = ReplicatedStorage:FindFirstChild("CloneModelEvent")
+if not event then
+	event = Instance.new("RemoteEvent")
+	event.Name = "CloneModelEvent"
+	event.Parent = ReplicatedStorage
+end
 
--- RemoteEvent
-local event = Instance.new("RemoteEvent")
-event.Name = "CloneModelEvent"
-event.Parent = ReplicatedStorage
-
--- Server: Modell klonen
-event.OnServerEvent:Connect(function(player, model)
-	if model and model:IsA("Model") and model.PrimaryPart then
-		local clone = model:Clone()
-		clone.Parent = workspace
-		clone:SetPrimaryPartCFrame(model.PrimaryPart.CFrame)
-	end
-end)
-
--- GUI erstellen für Spieler
-Players.PlayerAdded:Connect(function(player)
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "ModelClonerGui"
-	gui.ResetOnSpawn = false
-	gui.Parent = player:WaitForChild("PlayerGui")
-
-	local frame = Instance.new("ScrollingFrame")
-	frame.Size = UDim2.new(0, 300, 0, 400)
-	frame.Position = UDim2.new(0, 10, 0.5, -200)
-	frame.CanvasSize = UDim2.new(0, 0, 0, 0)
-	frame.ScrollBarImageTransparency = 0
-	frame.Parent = gui
-
-	local layout = Instance.new("UIListLayout")
-	layout.Parent = frame
-
-	-- LocalScript
-	local localScript = Instance.new("LocalScript")
-	localScript.Parent = gui
-
-	localScript.Source = [[
-		local ReplicatedStorage = game:GetService("ReplicatedStorage")
-		local event = ReplicatedStorage:WaitForChild("CloneModelEvent")
-		local frame = script.Parent:WaitForChild("ScrollingFrame")
-
-		for _, obj in pairs(workspace:GetChildren()) do
-			if obj:IsA("Model") and obj.PrimaryPart then
-				local btn = Instance.new("TextButton")
-				btn.Size = UDim2.new(1, -10, 0, 40)
-				btn.Text = obj.Name
-				btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-				btn.TextColor3 = Color3.new(1,1,1)
-				btn.Parent = frame
-
-				btn.MouseButton1Click:Connect(function()
-					event:FireServer(obj)
-				end)
-			end
+-- Server-Listener (wird nur einmal automatisch gesetzt)
+if not event:FindFirstChild("ServerListener") then
+	local s = Instance.new("BindableEvent")
+	s.Name = "ServerListener"
+	s.Parent = event
+	event.OnServerEvent:Connect(function(playerFired, model)
+		if model and model:IsA("Model") and model.PrimaryPart then
+			local clone = model:Clone()
+			clone.Parent = Workspace
+			clone:SetPrimaryPartCFrame(model.PrimaryPart.CFrame)
 		end
-	]]
-end)
+	end)
+end
+
+-- Funktion: ClickDetector an jedem Modell
+local function setupModel(model)
+	if not model:IsA("Model") then return end
+	if not model.PrimaryPart then return end
+
+	local part = model.PrimaryPart
+	local click = part:FindFirstChildOfClass("ClickDetector")
+	if not click then
+		click = Instance.new("ClickDetector")
+		click.MaxActivationDistance = 32
+		click.Parent = part
+	end
+
+	click.MouseClick:Connect(function()
+		-- Klone das Modell via RemoteEvent
+		event:FireServer(model)
+	end)
+end
+
+-- Bestehende Modelle
+for _, obj in pairs(Workspace:GetChildren()) do
+	setupModel(obj)
+end
+
+-- Neue Modelle
+Workspace.ChildAdded:Connect(setupModel)
+
